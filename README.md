@@ -68,13 +68,14 @@ When determining whether or not a customer will churn, my initial thought is the
 | streaming_tv   | string; yes/no determine if the customer has this feature |
 | streaming_movies | string; yes/no determine if the customer this feature |
 | paperless_billing | string; yes/no determine if the customer has this feature|
-| payment_type_id | int; 1/2/3/4, determines what identifier for form of payment the customer utilizes |
-| monthly_charges | int; the amount the customer pays monthly |
-| total_charges | int; a total accumilation of what the customer has paid since beginning their service plan |
+| payment_type_id | integer; 1/2/3/4, determines what identifier for form of payment the customer utilizes |
+| monthly_charges | integer; the amount the customer pays monthly |
+| total_charges | integer; a total accumilation of what the customer has paid since beginning their service plan |
 | churn | str; yes/no, determines whether or not a customer has churned, this is our target |
 | internet_service_type | str; DSL/Fiber optic/No internet service, multicategorical data to determine what internet service type is used by the customer |
 | payment_type | str; Mailed check/Electronic check/Credit card(automatic)/Credit card(manual), multicategorical data to determine the customer payment type in detail |
 | contract_type | str; One year/Month-to-month/Two year, the type of contract type signed by the customer to determine length of service |
+| Various encoded dummy columns of respective categorical types above |
 
 ## Reproducability Requirements
 ---
