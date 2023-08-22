@@ -61,7 +61,7 @@ def prep_telco():
     #encoding categorical type data
     dummy_df = pd.get_dummies(telco[['multiple_lines','online_security','online_backup','payment_type',
                                 'contract_type', 'tech_support','streaming_tv','streaming_movies',
-                                'device_protection']],dtype=int ,drop_first=True)
+                                'device_protection','internet_service_type']],dtype=int ,drop_first=True)
     telco['partner_binary'] = pd.get_dummies(telco['partner'], dtype=int, drop_first=True)
     telco['dependents_binary'] = pd.get_dummies(telco['dependents'], dtype=int,drop_first=True)
     telco['phone_service_binary'] = pd.get_dummies(telco['phone_service'], dtype=int, drop_first=True)
@@ -85,6 +85,7 @@ def prep_telco():
 
     # lowering all column names
     telco.columns = map(str.lower,telco.columns)
+    telco.columns = telco.columns.str.replace(' ','_')
 
     return telco
     
