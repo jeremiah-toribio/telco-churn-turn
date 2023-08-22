@@ -12,6 +12,10 @@ from scipy import stats
 from sklearn.metrics import accuracy_score, precision_score, recall_score, classification_report, confusion_matrix, ConfusionMatrixDisplay
 # Decision Tree
 from sklearn.tree import DecisionTreeClassifier as dt, plot_tree, export_text
+# Logistic Regression
+from sklearn.linear_model import LogisticRegression as lr
+# KNN
+from sklearn.neighbors import KNeighborsClassifier as knn
 
 
 
@@ -169,5 +173,71 @@ def metrics(TN,FP,FN,TP):
     print(f"Support (0): {support_pos}")
     print(f"Support (1): {support_neg}")
 
-    def decision_tree_multi(x_train, y,_train, x_val, y_val, x_test, y_test):
-        clf = dt(max_depth=3,random_state=4343)
+def decision_tree_compiled(x_train, y_train, df, plot=True):
+    '''
+    x_train = features
+    y_train = target
+    df is used to generate the values in churn in this case.
+    Optional tree visualization. Default True.
+    '''
+    # tree object
+    clf = dt(max_depth=3,random_state=4343)
+    # fit
+    clf.fit(x_train, y_train)
+    # predict
+    model_prediction = clf.predict(x_train)
+
+    # generate metrics
+    TN, FP, FN, TP = confusion_matrix(y_train, model_prediction).ravel()
+    get_classification_report(y_train,model_prediction)
+    metrics(TN, FP, FN, TP)
+
+    # plot Tree
+    if tree == True:
+        labels = list(df['churn'].astype(str))
+        fig, axes = plt.subplots(nrows = 1,ncols = 1,figsize = (10,10), dpi=500)
+        tree = plot_tree(clf, feature_names=x_train.columns.to_list(), class_names=labels,filled=True)
+        plt.show()
+    else:
+        None
+    return
+
+def log_regression_compiled(x_train, y_train):
+    '''
+    Generates the logistic regression sklearn model.
+    
+    x_train = features
+    y_train = target
+    '''
+    # tree object
+    logit = lr(C=1, random_state=4343)
+    # fit
+    logit.fit(x_train,y_train)
+    # predict
+    model_prediction = logit.predict(x_train)
+
+    # generate metrics
+    TN, FP, FN, TP = confusion_matrix(y_train, model_prediction).ravel()
+    get_classification_report(y_train,model_prediction)
+    metrics(TN, FP, FN, TP)
+    return
+
+def knn_compiled(x_train, y_train, C=8, weights='uniform'):
+    '''
+    Generates the logistic regression sklearn model.
+    
+    x_train = features
+    y_train = target
+    '''
+    # tree object
+    knn = knn(C=C, random_state=4343, weights=weights)
+    # fit
+    knn.fit(x_train,y_train)
+    # predict
+    model_prediction = knn.predict(x_train)
+
+    # generate metrics
+    TN, FP, FN, TP = confusion_matrix(y_train, model_prediction).ravel()
+    get_classification_report(y_train,model_prediction)
+    metrics(TN, FP, FN, TP)
+    return
