@@ -2,8 +2,8 @@
 ---
 ## Project Description (re)
 Telco is a telecommunications company that would like to retrieve insight on whether there are relationships between customer churn and any type of service, plan or demographic. 
-Here we will explore possible relationships within the customers' data to determine as such; it is important to note that coorelation is not directly causation and further determination may be required in order to make that claim.
-The customer data that we will be exploring will not include personally identifiable information and will only be used to categorize customers.
+Here we will explore possible relationships within the customers' data to determine as such; it is important to note that coorelation is not directly causation and further determination may be required in order to make claims.
+The customer data that we will be exploring will not include personally identifiable information and will only be used demographically.
 
 ## Project Goals
 ---
@@ -13,9 +13,9 @@ The customer data that we will be exploring will not include personally identifi
 - The insights discovered will be used to make decisions to prevent further customer churn
 
 
-## Initial Thoughts (re)
+## Initial Thoughts
 --- 
-When determining whether or not a customer will churn, my initial thought is there will likely be a few elements to determine if a customer will churn.
+When determining whether or not a customer will churn, my initial thought is there will likely be a few elements to that will not definitely determine if a customer will churn but may help in making a slightly better assumption that one will churn.
 
 ## Planning
 --- 

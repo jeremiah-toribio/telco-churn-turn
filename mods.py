@@ -1,13 +1,13 @@
 # Array and Dataframes
 import numpy as np
 import pandas as pd
-# Load datasets
-from pydataset import data
 # Evaluation: Visualization
 import seaborn as sns
 import matplotlib.pyplot as plt
 # Evaluation: Statistical Analysis
 from scipy import stats
+# Modeling
+from sklearn.model_selection import GridSearchCV
 # Metrics
 from sklearn.metrics import accuracy_score, precision_score, recall_score, classification_report, confusion_matrix, ConfusionMatrixDisplay
 # Decision Tree
@@ -15,8 +15,7 @@ from sklearn.tree import DecisionTreeClassifier as dt, plot_tree, export_text
 # Logistic Regression
 from sklearn.linear_model import LogisticRegression as lr
 # KNN
-from sklearn.neighbors import KNeighborsClassifier as knn
-
+from sklearn.neighbors import KNeighborsClassifier
 
 
 def eval_metrics(tp,tn,fp,fn):
@@ -35,11 +34,7 @@ def eval_metrics(tp,tn,fp,fn):
         recall = tp / (tp+fn)
         return print(f'''Accuracy is: {accuracy}\nPrecision is: {precision}\nRecall is: {recall}''')
 
-# separating our numeric and categorical columns:
-# initialize two empty lists for each type:
 
-# set up a for loop to build those lists out:
-# so for every column in explore_columns:
 def organize_columns(train):
     '''
     Distinguishes between numeric and categorical data types
@@ -49,7 +44,7 @@ def organize_columns(train):
     cat_cols, num_cols = [], []
     explore = train[['gender','partner','dependents','tenure','phone_service','multiple_lines','online_security','online_backup',\
     'streaming_tv','streaming_movies','paperless_billing','monthly_charges','total_charges','churn','internet_service_type',\
-        'payment_type','contract_type']]
+        'payment_type','contract_type','senior_citizen','additional_services']]
     for col in explore:
         # check to see if its an object type,
         # if so toss it in categorical
@@ -66,18 +61,44 @@ def organize_columns(train):
                 num_cols.append(col)
     return cat_cols, num_cols
 
+def check_churn():
+    sns.countplot(data=train,x='churn',alpha=0.8,linewidth=.4,edgecolor='black')
+    return plt.show()
+
+def without_hue(ax, feature):
+    total = len(feature)
+    for p in ax.patches:
+        percentage = '{:.1f}%'.format(100 * p.get_height()/total)
+        x = p.get_x() + p.get_width() / 2 - 0.05
+        y = p.get_y() + p.get_height()
+        ax.annotate(percentage, (x, y), size = 12)
+
+
+def with_hue(ax, feature, Number_of_categories, hue_categories):
+    a = [p.get_height() for p in ax.patches]
+    patch = [p for p in ax.patches]
+    for i in range(Number_of_categories):
+        total = feature.value_counts().values[i]
+        for j in range(hue_categories):
+            percentage = '{:.1f}%'.format(100 * a[(j*Number_of_categories + i)]/total)
+            x = patch[(j*Number_of_categories + i)].get_x() + patch[(j*Number_of_categories + i)].get_width() / 2 - 0.15
+            y = patch[(j*Number_of_categories + i)].get_y() + patch[(j*Number_of_categories + i)].get_height() 
+            ax.annotate(percentage, (x, y), size = 12)
+
 def check_cat_distribution(df,target='churn'):
     '''
     Loop through a df and check their respective distributions.
     This is to be used with categorical datatypes, since the only 
     plot used is a countplot, with a target used as the hue to compare.
     '''
+    
     for col in df:
-        sns.countplot(data =df, x=col, hue=target)
-        t = col.lower()
-        plt.title(t)
+        plt.figure(figsize=(12.5,8))
+        sns.countplot(data=df,x=col,hue=target,alpha=0.8,linewidth=.4,edgecolor='black')
+        plt.title(col)
         plt.show()
         print('''-------------------------------------------------------------''')
+
 
 def check_num_distribution(df,dataset='train',target='churn'):
     '''
@@ -115,6 +136,7 @@ def chi2_test(col1, col2, a=.05):
     
     return observed
 
+
 def check_p(p):
     '''
     checks p value to see association to a, depending on outcome will print
@@ -126,6 +148,7 @@ def check_p(p):
     else:
         return print(f'We fail to reject the null hypothesis with a p-score of:',{p})
 
+
 def get_classification_report(x_test, y_pred):
     '''
     Returns classification report as a dataframe.
@@ -134,6 +157,7 @@ def get_classification_report(x_test, y_pred):
     df_classification_report = pd.DataFrame(report).transpose()
     df_classification_report = df_classification_report.sort_values(by=['f1-score'], ascending=False)
     return df_classification_report
+
 
 def metrics(TN,FP,FN,TP):
     '''
@@ -173,6 +197,7 @@ def metrics(TN,FP,FN,TP):
     print(f"Support (0): {support_pos}")
     print(f"Support (1): {support_neg}")
 
+
 def decision_tree_compiled(x_train, y_train, df, plot=True):
     '''
     x_train = features
@@ -193,7 +218,7 @@ def decision_tree_compiled(x_train, y_train, df, plot=True):
     metrics(TN, FP, FN, TP)
 
     # plot Tree
-    if tree == True:
+    if plot == True:
         labels = list(df['churn'].astype(str))
         fig, axes = plt.subplots(nrows = 1,ncols = 1,figsize = (10,10), dpi=500)
         tree = plot_tree(clf, feature_names=x_train.columns.to_list(), class_names=labels,filled=True)
@@ -202,42 +227,84 @@ def decision_tree_compiled(x_train, y_train, df, plot=True):
         None
     return
 
-def log_regression_compiled(x_train, y_train):
+
+def log_regression_compiled(x_train, y_train, x_test, y_test):
     '''
     Generates the logistic regression sklearn model.
-    
+    Finds the best fit C parameter using GridSearchCV by SKLearn
     x_train = features
     y_train = target
     '''
+    # Parameters defined for GridSearch, train model
+    param_grid_L1 = {'penalty': ['l1', 'l2'], 'C': np.arange(.1,5,.1)}
+    logreg_tuned = lr(solver='saga', max_iter=500)
+    logreg_tuned_gs = GridSearchCV(logreg_tuned, param_grid_L1, cv=5)
+    logreg_tuned_gs.fit(x_train,y_train)
+
+    # Predictions based on trained model
+    y_predictions_lr_tuned = logreg_tuned_gs.predict(x_test)
+    y_predictions_lr_prob_tuned = logreg_tuned_gs.predict_proba(x_test)
+
+    # Output best C parameter
+    print(f'Best fit "C" parameter (Determined by GridSearchCV): {logreg_tuned_gs.best_params_["C"]}')
+
     # tree object
-    logit = lr(C=1, random_state=4343)
+    logit = lr(C=logreg_tuned_gs.best_params_["C"], random_state=4343)
     # fit
     logit.fit(x_train,y_train)
     # predict
     model_prediction = logit.predict(x_train)
+    model_prediction_test = logit.predict(x_test)
 
     # generate metrics
     TN, FP, FN, TP = confusion_matrix(y_train, model_prediction).ravel()
     get_classification_report(y_train,model_prediction)
     metrics(TN, FP, FN, TP)
+    # test metrics
+    TN, FP, FN, TP = confusion_matrix(y_test, model_prediction_test).ravel()
+    get_classification_report(y_test,model_prediction_test)
+
     return
 
-def knn_compiled(x_train, y_train, C=8, weights='uniform'):
+
+def knn_compiled(x_train, y_train, x_test, y_test, weights='uniform'):
     '''
-    Generates the logistic regression sklearn model.
-    
+    Generates the K Nearest Neighbors SKLearn model.
+    Finds the best fit C parameter using GridSearchCV by SKLearn
+    Scans from n_neighbors = 1-30
     x_train = features
     y_train = target
     '''
-    # tree object
-    knn = knn(C=C, random_state=4343, weights=weights)
+ # Parameters defined for GridSearch, train model
+    param_grid = {'n_neighbors': np.arange(1,30)}
+    knn = KNeighborsClassifier(n_neighbors=1,weights='uniform')
+    knn_cv = GridSearchCV(knn,param_grid,cv=5)
+    knn_cv.fit(x_train,y_train)
+    
+    # Predictions based on trained model
+    y_pred_knn_tuned = knn_cv.predict(x_test)
+    print(f'Best fit "n_neighbors" parameter (Determined by GridSearchCV): {knn_cv.best_params_["n_neighbors"]}',\
+      '\n--------------------------------------')
+
+    # knn object
+    knn = KNeighborsClassifier(n_neighbors=1, weights=weights)
+
     # fit
     knn.fit(x_train,y_train)
+    
     # predict
     model_prediction = knn.predict(x_train)
-
+    model_prediction_test = knn.predict(x_test)
     # generate metrics
     TN, FP, FN, TP = confusion_matrix(y_train, model_prediction).ravel()
-    get_classification_report(y_train,model_prediction)
-    metrics(TN, FP, FN, TP)
+    print(f'Train Class Report & Metrics:\
+      \n---------------------------------------')
+    print(f'{classification_report(y_train,model_prediction)}')
+    print(f'{metrics(TN, FP, FN, TP)}','\n')
+    # test metrics
+    TN, FP, FN, TP = confusion_matrix(y_test, model_prediction_test).ravel()
+    print(f'Test Classificiation Report & Metrics:\
+      \n--------------------------------------')
+    print(f'{classification_report(y_test,model_prediction_test)}')
+    print(f'{metrics(TN, FP, FN, TP)}')
     return

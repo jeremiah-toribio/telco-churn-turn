@@ -58,7 +58,7 @@ def prep_telco():
     telco = acquire.get_telco_data('telco_churn')
     # removing duplicate columns
     telco = telco.loc[:,~telco.columns.duplicated()].copy()
-    #encoding categorical type data
+    # encoding categorical type data
     dummy_df = pd.get_dummies(telco[['multiple_lines','online_security','online_backup','payment_type',
                                 'contract_type', 'tech_support','streaming_tv','streaming_movies',
                                 'device_protection','internet_service_type']],dtype=int ,drop_first=True)
@@ -76,8 +76,8 @@ def prep_telco():
     # dropping extra columns after encoding
     telco = telco.drop(columns=['online_security_No internet service',
                     'online_security_No internet service','online_backup_No internet service',
-                    'tech_support_No internet service','streaming_tv_No internet service','streaming_movies_No internet service','device_protection_No internet service',
-                    'tech_support','device_protection'])
+                    'tech_support_No internet service','streaming_tv_No internet service','streaming_movies_No internet service',
+                    'device_protection_No internet service',])
 
     # restoring 'drop_first' column for contract_type as it is desired to specify just this value type (without deducting)
     telco['contract_type_month_to_month'] = telco['contract_type'] == 'Month-to-month'
