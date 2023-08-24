@@ -277,7 +277,7 @@ def knn_compiled(x_train, y_train, x_test, y_test, weights='uniform'):
     '''
  # Parameters defined for GridSearch, train model
     param_grid = {'n_neighbors': np.arange(1,30)}
-    knn = KNeighborsClassifier(n_neighbors=1,weights='uniform')
+    knn = KNeighborsClassifier(n_neighbors=28,weights='uniform')
     knn_cv = GridSearchCV(knn,param_grid,cv=5)
     knn_cv.fit(x_train,y_train)
     
